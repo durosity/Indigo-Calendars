@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<Events>
+    <Event id="calendarEventStarting">
+        <Name>Calendar Event Starting</Name>
+        <ConfigUI>
+            <Field id="calendarDevice" type="menu">
+                <Label>Calendar Device:</Label>
+                <List class="indigo.devices" filter="self.calendar,self.icsCalendar,self.mergedCalendar"/>
+            </Field>
+            
+            <Field id="eventSlot" type="menu">
+                <Label>Event Slot:</Label>
+                <List>
+                    <Option value="any">Any Event</Option>
+                    <Option value="01">Event 01</Option>
+                    <Option value="02">Event 02</Option>
+                    <Option value="03">Event 03</Option>
+                    <Option value="04">Event 04</Option>
+                    <Option value="05">Event 05</Option>
+                    <Option value="06">Event 06</Option>
+                    <Option value="07">Event 07</Option>
+                    <Option value="08">Event 08</Option>
+                    <Option value="09">Event 09</Option>
+                    <Option value="10">Event 10</Option>
+                </List>
+            </Field>
+            
+            <Field id="minutesBefore" type="textfield" defaultValue="0">
+                <Label>Minutes Before Event:</Label>
+                <Description>Trigger this many minutes before event starts (0 = at start time)</Description>
+            </Field>
+            
+            <Field id="matchEventName" type="textfield">
+                <Label>Match Event Name (optional):</Label>
+                <Description>Only trigger for events containing this text (case-insensitive)</Description>
+            </Field>
+        </ConfigUI>
+    </Event>
+</Events>

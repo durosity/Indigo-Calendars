@@ -1,0 +1,279 @@
+<?xml version="1.0"?>
+<Actions>
+    <Action id="refreshCalendar" deviceFilter="self.calendar">
+        <Name>Refresh Calendar Events</Name>
+        <CallbackMethod>refreshCalendar</CallbackMethod>
+        <ConfigUI>
+            <Field id="targetDevice" type="menu">
+                <Label>Calendar Device:</Label>
+                <List class="self" filter="self.calendar" method="get_device_list"/>
+            </Field>
+        </ConfigUI>
+    </Action>
+    
+    <Action id="createEvent">
+        <Name>Create Calendar Event</Name>
+        <CallbackMethod>createEvent</CallbackMethod>
+        <ConfigUI actionConfigUiButtonPressed="validateCreateEventAction">
+            <Field id="headerLabel" type="label" fontSize="small" fontColor="darkgray">
+                <Label>Date Format: YYYY-MM-DD, +0 (today), +1 (tomorrow), +N (days from now)
+Time Format: HH:MM (24-hour), +6h (hours from now), +30m, +2h30m
+All fields support %%v:ID%% variable substitution</Label>
+            </Field>
+            
+            <Field id="targetCalendar" type="menu">
+                <Label>Target Calendar:</Label>
+                <List class="self" method="get_calendar_list_for_creation"/>
+            </Field>
+            
+            <Field id="eventName" type="textfield">
+                <Label>Event Name:</Label>
+                <Description>Supports %%v:ID%% variable substitution</Description>
+            </Field>
+            
+            <Field id="separator1" type="separator"/>
+            
+            <Field id="allDay" type="checkbox" defaultValue="false">
+                <Label>All Day Event:</Label>
+            </Field>
+            
+            <Field id="startDate" type="textfield">
+                <Label>Start Date:</Label>
+                <Description>YYYY-MM-DD, +0 (today), +1 (tomorrow), +N (days), or %%v:ID%%</Description>
+            </Field>
+            
+            <Field id="startTime" type="textfield" visibleBindingId="allDay" visibleBindingValue="false">
+                <Label>Start Time:</Label>
+                <Description>HH:MM (24-hour), +6h (hours from now), +30m, +2h30m, or %%v:ID%%</Description>
+            </Field>
+            
+            <Field id="endDate" type="textfield">
+                <Label>End Date:</Label>
+                <Description>Leave blank to use start date. Same formats as Start Date</Description>
+            </Field>
+            
+            <Field id="endTime" type="textfield" visibleBindingId="allDay" visibleBindingValue="false">
+                <Label>End Time:</Label>
+                <Description>Leave blank for +1 hour from start. Same formats as Start Time</Description>
+            </Field>
+            
+            <Field id="separator2" type="separator"/>
+            
+            <Field id="location" type="textfield">
+                <Label>Location:</Label>
+                <Description>Optional. Supports %%v:ID%% variable substitution</Description>
+            </Field>
+        </ConfigUI>
+    </Action>    
+    <Action id="createReminder">
+        <Name>Create Reminder</Name>
+        <CallbackMethod>createReminder</CallbackMethod>
+        <ConfigUI>
+            <Field id="headerLabel" type="label" fontSize="small" fontColor="darkgray">
+                <Label>Date Format: YYYY-MM-DD, +0 (today), +1 (tomorrow), +N (days from now)
+Time Format: HH:MM (24-hour), +6h (hours from now), +30m, +2h30m
+All fields support %%v:ID%% variable substitution</Label>
+            </Field>
+            
+            <Field id="targetList" type="menu">
+                <Label>Target List:</Label>
+                <List class="self" method="get_reminder_list"/>
+            </Field>
+            
+            <Field id="reminderName" type="textfield">
+                <Label>Reminder Name:</Label>
+                <Description>Supports %%v:ID%% variable substitution</Description>
+            </Field>
+            
+            <Field id="separator1" type="separator"/>
+            
+            <Field id="hasDueDate" type="checkbox" defaultValue="true">
+                <Label>Set Due Date:</Label>
+            </Field>
+            
+            <Field id="dueDate" type="textfield" visibleBindingId="hasDueDate" visibleBindingValue="true">
+                <Label>Due Date:</Label>
+                <Description>YYYY-MM-DD, +0 (today), +1 (tomorrow), +N (days), or %%v:ID%%</Description>
+            </Field>
+            
+            <Field id="dueTime" type="textfield" visibleBindingId="hasDueDate" visibleBindingValue="true">
+                <Label>Due Time:</Label>
+                <Description>HH:MM (24-hour), +6h, +30m, +2h30m, %%v:ID%%, or blank for none</Description>
+            </Field>
+            
+            <Field id="separator2" type="separator"/>
+            
+            <Field id="priority" type="menu" defaultValue="0">
+                <Label>Priority:</Label>
+                <List>
+                    <Option value="0">None</Option>
+                    <Option value="1">High (!!)</Option>
+                    <Option value="5">Medium (!)</Option>
+                    <Option value="9">Low</Option>
+                </List>
+            </Field>
+            
+            <Field id="notes" type="textfield">
+                <Label>Notes:</Label>
+                <Description>Optional. Supports %%v:ID%% variable substitution</Description>
+            </Field>
+
+            <Field id="separator3" type="separator"/>
+
+            <Field id="saveIdToVariable" type="checkbox" defaultValue="false">
+                <Label>Save Reminder ID:</Label>
+                <Description>Store the new reminder's ID in a variable</Description>
+            </Field>
+
+            <Field id="idVariable" type="menu" visibleBindingId="saveIdToVariable" visibleBindingValue="true">
+                <Label>Variable:</Label>
+                <List class="indigo.variables"/>
+            </Field>
+
+            <Field id="idVariableHelp" type="label" fontSize="small" fontColor="darkgray" visibleBindingId="saveIdToVariable" visibleBindingValue="true">
+                <Label>Use "Complete Reminder from Variable" later to tick this reminder off.</Label>
+            </Field>
+        </ConfigUI>
+    </Action>
+
+    <Action id="completeReminderFromVariable">
+        <Name>Complete Reminder from Variable</Name>
+        <CallbackMethod>completeReminderFromVariable</CallbackMethod>
+        <ConfigUI>
+            <Field id="headerLabel" type="label" fontSize="small" fontColor="darkgray">
+                <Label>Marks the reminder whose ID is stored in the variable as complete. The ID is saved by the Create Reminder action's "Save Reminder ID" option. If the variable is empty, nothing happens.</Label>
+            </Field>
+
+            <Field id="idVariable" type="menu">
+                <Label>Variable:</Label>
+                <List class="indigo.variables"/>
+            </Field>
+
+            <Field id="clearVariable" type="checkbox" defaultValue="true">
+                <Label>Clear Variable:</Label>
+                <Description>Empty the variable once the reminder is completed (or no longer exists)</Description>
+            </Field>
+        </ConfigUI>
+    </Action>
+
+    <Action id="markReminderComplete">
+        <Name>Mark Reminder as Complete</Name>
+        <CallbackMethod>markReminderComplete</CallbackMethod>
+        <ConfigUI>
+            <Field id="reminderDevice" type="menu">
+                <Label>Reminder Device:</Label>
+                <List class="indigo.devices" filter="self.reminders"/>
+            </Field>
+            
+            <Field id="reminderSlot" type="menu">
+                <Label>Reminder Slot:</Label>
+                <List>
+                    <Option value="01">Reminder 01</Option>
+                    <Option value="02">Reminder 02</Option>
+                    <Option value="03">Reminder 03</Option>
+                    <Option value="04">Reminder 04</Option>
+                    <Option value="05">Reminder 05</Option>
+                    <Option value="06">Reminder 06</Option>
+                    <Option value="07">Reminder 07</Option>
+                    <Option value="08">Reminder 08</Option>
+                    <Option value="09">Reminder 09</Option>
+                    <Option value="10">Reminder 10</Option>
+                </List>
+            </Field>
+        </ConfigUI>
+    </Action>
+    
+    <Action id="snoozeReminder">
+        <Name>Snooze Reminder</Name>
+        <CallbackMethod>snoozeReminder</CallbackMethod>
+        <ConfigUI>
+            <Field id="reminderDevice" type="menu">
+                <Label>Reminder Device:</Label>
+                <List class="indigo.devices" filter="self.reminders"/>
+            </Field>
+            
+            <Field id="reminderSlot" type="menu">
+                <Label>Reminder Slot:</Label>
+                <List>
+                    <Option value="01">Reminder 01</Option>
+                    <Option value="02">Reminder 02</Option>
+                    <Option value="03">Reminder 03</Option>
+                    <Option value="04">Reminder 04</Option>
+                    <Option value="05">Reminder 05</Option>
+                    <Option value="06">Reminder 06</Option>
+                    <Option value="07">Reminder 07</Option>
+                    <Option value="08">Reminder 08</Option>
+                    <Option value="09">Reminder 09</Option>
+                    <Option value="10">Reminder 10</Option>
+                </List>
+            </Field>
+            
+            <Field id="snoozeDays" type="textfield" defaultValue="0">
+                <Label>Days to Add:</Label>
+            </Field>
+            
+            <Field id="snoozeHours" type="textfield" defaultValue="0">
+                <Label>Hours to Add:</Label>
+            </Field>
+        </ConfigUI>
+    </Action>
+    
+    <Action id="setDateOnUndated">
+        <Name>Set Date on Undated Reminders</Name>
+        <CallbackMethod>setDateOnUndated</CallbackMethod>
+        <ConfigUI>
+            <Field id="selectedLists" type="list">
+                <Label>Reminder Lists to Process:</Label>
+                <List class="self" method="get_reminder_list"/>
+            </Field>
+            
+            <Field id="separator1" type="separator"/>
+            
+            <Field id="dateSource" type="menu" defaultValue="specific">
+                <Label>Date/Time Source:</Label>
+                <List>
+                    <Option value="specific">Specific Date/Time</Option>
+                    <Option value="daysFromNow">Days from Now</Option>
+                    <Option value="variable">From Variable</Option>
+                </List>
+            </Field>
+            
+            <Field id="specificDate" type="textfield" visibleBindingId="dateSource" visibleBindingValue="specific">
+                <Label>Date (YYYY-MM-DD):</Label>
+            </Field>
+            
+            <Field id="specificTime" type="textfield" defaultValue="10:30" visibleBindingId="dateSource" visibleBindingValue="specific">
+                <Label>Time (HH:MM):</Label>
+            </Field>
+            
+            <Field id="daysFromNow" type="textfield" defaultValue="1" visibleBindingId="dateSource" visibleBindingValue="daysFromNow">
+                <Label>Days from Now:</Label>
+            </Field>
+            
+            <Field id="daysFromNowTime" type="textfield" defaultValue="10:30" visibleBindingId="dateSource" visibleBindingValue="daysFromNow">
+                <Label>Time (HH:MM):</Label>
+            </Field>
+            
+            <Field id="variableValue" type="textfield" visibleBindingId="dateSource" visibleBindingValue="variable">
+                <Label>Variable:</Label>
+                <Description>Format: %%v:12345%% - Variable should contain: YYYY-MM-DD HH:MM</Description>
+            </Field>
+        </ConfigUI>
+    </Action>
+
+    <!-- Script/plugin-only actions, hidden from the Indigo UI. See README: What's New in v4.2.11 -->
+    <Action id="completeReminderById" uiPath="hidden">
+        <Name>Mark Reminder as Complete by ID (scripts only)</Name>
+        <CallbackMethod>completeReminderById</CallbackMethod>
+    </Action>
+
+    <Action id="getReminderLists" uiPath="hidden">
+        <Name>Get Reminder Lists (scripts only)</Name>
+        <CallbackMethod>getReminderLists</CallbackMethod>
+    </Action>
+
+    <Action id="refreshAppleEvents" deviceFilter="self.appleEvents">
+        <Name>Check Apple Events Now</Name>
+        <CallbackMethod>refreshAppleEvents</CallbackMethod>
+    </Action>
+</Actions>

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<MenuItems>
+    <MenuItem id="checkPermissions">
+        <Name>Check Calendar &amp; Reminders Permissions...</Name>
+        <CallbackMethod>menu_check_permissions</CallbackMethod>
+    </MenuItem>
+    <MenuItem id="requestPermissions">
+        <Name>Re-request Calendar &amp; Reminders Access...</Name>
+        <CallbackMethod>menu_request_permissions</CallbackMethod>
+    </MenuItem>
+</MenuItems>
