@@ -1,0 +1,500 @@
+<?xml version="1.0"?>
+<Devices>
+    <Device type="sensor" id="calendar">
+        <Name>Calendar</Name>
+        <UiDisplayStateId>lastUpdate</UiDisplayStateId>
+        <ConfigUI>
+            <Field id="calendarListLabel" type="label">
+                <Label>Calendar Selection:</Label>
+            </Field>
+            
+            <Field id="refreshCalendarList" type="button">
+                <Label>Refresh Available Calendars</Label>
+                <Title>Refresh</Title>
+                <CallbackMethod>refresh_calendar_list</CallbackMethod>
+            </Field>
+            
+            <Field id="selectedCalendars" type="list">
+                <Label>Calendars to Monitor:</Label>
+                <List class="self" method="get_calendar_list" dynamicReload="true"/>
+            </Field>
+            
+            <Field id="separator1" type="separator"/>
+            
+            <Field id="eventCount" type="textfield" defaultValue="7">
+                <Label>Number of Events to Import:</Label>
+            </Field>
+            
+            <Field id="daysAhead" type="menu" defaultValue="60">
+                <Label>Days Ahead to Fetch:</Label>
+                <List>
+                    <Option value="7">7 days (1 week)</Option>
+                    <Option value="14">14 days (2 weeks)</Option>
+                    <Option value="30">30 days (1 month)</Option>
+                    <Option value="60">60 days (2 months)</Option>
+                    <Option value="90">90 days (3 months)</Option>
+                </List>
+            </Field>
+            
+            <Field id="removeDuplicates" type="checkbox" defaultValue="true">
+                <Label>Remove Duplicate Events:</Label>
+                <Description>Remove recurring event instances that appear multiple times</Description>
+            </Field>
+            
+            <Field id="filterKeywords" type="textfield">
+                <Label>Filter Keywords (exclude events):</Label>
+                <Description>Comma-separated keywords to exclude (e.g., "Scotland, Wales, Ireland")</Description>
+            </Field>
+            
+            <Field id="separator2" type="separator"/>
+            
+            <Field id="refreshInterval" type="menu" defaultValue="300">
+                <Label>Auto-Refresh Interval:</Label>
+                <List>
+                    <Option value="0">Disabled</Option>
+                    <Option value="60">1 minute</Option>
+                    <Option value="300">5 minutes</Option>
+                    <Option value="600">10 minutes</Option>
+                    <Option value="900">15 minutes</Option>
+                    <Option value="1800">30 minutes</Option>
+                    <Option value="3600">1 hour</Option>
+                </List>
+            </Field>
+            
+            <Field id="debugLogging" type="checkbox" defaultValue="false">
+                <Label>Enable Debug Logging:</Label>
+            </Field>
+        </ConfigUI>
+        
+        <States>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+            <State id="eventCount">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Event Count</TriggerLabel>
+                <ControlPageLabel>Event Count</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+    
+    <!-- Reminders Device -->
+    <Device type="sensor" id="reminders">
+        <Name>Reminders</Name>
+        <UiDisplayStateId>lastUpdate</UiDisplayStateId>
+        <ConfigUI>
+            <Field id="reminderListLabel" type="label">
+                <Label>Reminder List Selection:</Label>
+            </Field>
+            
+            <Field id="refreshReminderList" type="button">
+                <Label>Refresh Available Lists</Label>
+                <Title>Refresh</Title>
+                <CallbackMethod>refresh_reminder_list</CallbackMethod>
+            </Field>
+            
+            <Field id="selectedLists" type="list">
+                <Label>Lists to Monitor:</Label>
+                <List class="self" method="get_reminder_list" dynamicReload="true"/>
+            </Field>
+            
+            <Field id="separator1" type="separator"/>
+            
+            <Field id="reminderCount" type="textfield" defaultValue="10">
+                <Label>Number of Reminders to Import:</Label>
+            </Field>
+            
+            <Field id="priorityLabel" type="label">
+                <Label>Priority Order (1=highest, 9=lowest):</Label>
+            </Field>
+            
+            <Field id="priorityToday" type="menu" defaultValue="1">
+                <Label>Today:</Label>
+                <List>
+                    <Option value="1">1 - Highest</Option>
+                    <Option value="2">2</Option>
+                    <Option value="3">3</Option>
+                    <Option value="4">4</Option>
+                    <Option value="5">5</Option>
+                    <Option value="6">6</Option>
+                    <Option value="7">7</Option>
+                    <Option value="8">8</Option>
+                    <Option value="9">9 - Lowest</Option>
+                </List>
+            </Field>
+            
+            <Field id="priorityTomorrow" type="menu" defaultValue="2">
+                <Label>Tomorrow:</Label>
+                <List>
+                    <Option value="1">1 - Highest</Option>
+                    <Option value="2">2</Option>
+                    <Option value="3">3</Option>
+                    <Option value="4">4</Option>
+                    <Option value="5">5</Option>
+                    <Option value="6">6</Option>
+                    <Option value="7">7</Option>
+                    <Option value="8">8</Option>
+                    <Option value="9">9 - Lowest</Option>
+                </List>
+            </Field>
+            
+            <Field id="priorityFuture" type="menu" defaultValue="3">
+                <Label>Future (after tomorrow):</Label>
+                <List>
+                    <Option value="1">1 - Highest</Option>
+                    <Option value="2">2</Option>
+                    <Option value="3">3</Option>
+                    <Option value="4">4</Option>
+                    <Option value="5">5</Option>
+                    <Option value="6">6</Option>
+                    <Option value="7">7</Option>
+                    <Option value="8">8</Option>
+                    <Option value="9">9 - Lowest</Option>
+                </List>
+            </Field>
+            
+            <Field id="priorityYesterday" type="menu" defaultValue="4">
+                <Label>Yesterday:</Label>
+                <List>
+                    <Option value="1">1 - Highest</Option>
+                    <Option value="2">2</Option>
+                    <Option value="3">3</Option>
+                    <Option value="4">4</Option>
+                    <Option value="5">5</Option>
+                    <Option value="6">6</Option>
+                    <Option value="7">7</Option>
+                    <Option value="8">8</Option>
+                    <Option value="9">9 - Lowest</Option>
+                </List>
+            </Field>
+            
+            <Field id="priorityOlder" type="menu" defaultValue="5">
+                <Label>Older (before yesterday):</Label>
+                <List>
+                    <Option value="1">1 - Highest</Option>
+                    <Option value="2">2</Option>
+                    <Option value="3">3</Option>
+                    <Option value="4">4</Option>
+                    <Option value="5">5</Option>
+                    <Option value="6">6</Option>
+                    <Option value="7">7</Option>
+                    <Option value="8">8</Option>
+                    <Option value="9">9 - Lowest</Option>
+                </List>
+            </Field>
+            
+            <Field id="priorityUndated" type="menu" defaultValue="6">
+                <Label>Undated (no due date):</Label>
+                <List>
+                    <Option value="1">1 - Highest</Option>
+                    <Option value="2">2</Option>
+                    <Option value="3">3</Option>
+                    <Option value="4">4</Option>
+                    <Option value="5">5</Option>
+                    <Option value="6">6</Option>
+                </List>
+            </Field>
+            
+            <Field id="separator2a" type="separator"/>
+            
+            <Field id="prioritizeHighPriority" type="checkbox" defaultValue="false">
+                <Label>High Priority (!!) tasks show at top of day's list:</Label>
+                <Description>Within each day category, high priority tasks appear first</Description>
+            </Field>
+            
+            <Field id="separator3" type="separator"/>
+            
+            <Field id="separator4" type="separator"/>
+            
+            <Field id="refreshInterval" type="menu" defaultValue="300">
+                <Label>Auto-Refresh Interval:</Label>
+                <List>
+                    <Option value="0">Disabled</Option>
+                    <Option value="60">1 minute</Option>
+                    <Option value="300">5 minutes</Option>
+                    <Option value="600">10 minutes</Option>
+                    <Option value="900">15 minutes</Option>
+                    <Option value="1800">30 minutes</Option>
+                    <Option value="3600">1 hour</Option>
+                </List>
+            </Field>
+            
+            <Field id="debugLogging" type="checkbox" defaultValue="false">
+                <Label>Enable Debug Logging:</Label>
+            </Field>
+        </ConfigUI>
+        
+        <States>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+            <State id="reminderCount">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Reminder Count</TriggerLabel>
+                <ControlPageLabel>Reminder Count</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+    
+    <Device type="sensor" id="mergedCalendar">
+        <Name>Merged Calendar</Name>
+        <UiDisplayStateId>lastUpdate</UiDisplayStateId>
+        <ConfigUI>
+            <Field id="mergedLabel" type="label">
+                <Label>Merge Multiple Calendar Devices:</Label>
+            </Field>
+            
+            <Field id="sourceDevices" type="list">
+                <Label>Calendar Devices to Merge:</Label>
+                <List class="self" method="get_calendar_devices_for_merge"/>
+            </Field>
+            
+            <Field id="separator1" type="separator"/>
+            
+            <Field id="eventCount" type="textfield" defaultValue="10">
+                <Label>Number of Events to Display:</Label>
+            </Field>
+            
+            <Field id="removeDuplicates" type="checkbox" defaultValue="true">
+                <Label>Remove Duplicate Events:</Label>
+                <Description>Remove events that appear in multiple source calendars</Description>
+            </Field>
+            
+            <Field id="separator2" type="separator"/>
+            
+            <Field id="debugLogging" type="checkbox" defaultValue="false">
+                <Label>Enable Debug Logging:</Label>
+            </Field>
+        </ConfigUI>
+        
+        <States>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+            <State id="eventCount">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Event Count</TriggerLabel>
+                <ControlPageLabel>Event Count</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+    
+    <Device type="sensor" id="icsCalendar">
+        <Name>ICS Calendar Feed</Name>
+        <UiDisplayStateId>lastUpdate</UiDisplayStateId>
+        <ConfigUI>
+            <Field id="icsLabel" type="label">
+                <Label>External Calendar Feed (.ics URL):</Label>
+            </Field>
+            
+            <Field id="icsUrl" type="textfield">
+                <Label>ICS Feed URL:</Label>
+                <Description>Enter the full URL to the .ics calendar feed</Description>
+            </Field>
+            
+            <Field id="separator1" type="separator"/>
+            
+            <Field id="eventCount" type="textfield" defaultValue="10">
+                <Label>Number of Events to Import:</Label>
+            </Field>
+            
+            <Field id="daysAhead" type="menu" defaultValue="60">
+                <Label>Days Ahead to Fetch:</Label>
+                <List>
+                    <Option value="7">7 days (1 week)</Option>
+                    <Option value="14">14 days (2 weeks)</Option>
+                    <Option value="30">30 days (1 month)</Option>
+                    <Option value="60">60 days (2 months)</Option>
+                    <Option value="90">90 days (3 months)</Option>
+                </List>
+            </Field>
+            
+            <Field id="removeDuplicates" type="checkbox" defaultValue="true">
+                <Label>Remove Duplicate Events:</Label>
+                <Description>Remove recurring event instances that appear multiple times</Description>
+            </Field>
+            
+            <Field id="filterKeywords" type="textfield">
+                <Label>Filter Keywords (exclude events):</Label>
+                <Description>Comma-separated keywords to exclude (e.g., "Scotland, Wales, Ireland")</Description>
+            </Field>
+            
+            <Field id="separator2" type="separator"/>
+            
+            <Field id="refreshInterval" type="menu" defaultValue="300">
+                <Label>Auto-Refresh Interval:</Label>
+                <List>
+                    <Option value="0">Disabled</Option>
+                    <Option value="60">1 minute</Option>
+                    <Option value="300">5 minutes</Option>
+                    <Option value="600">10 minutes</Option>
+                    <Option value="900">15 minutes</Option>
+                    <Option value="1800">30 minutes</Option>
+                    <Option value="3600">1 hour</Option>
+                </List>
+            </Field>
+            
+            <Field id="separator3" type="separator"/>
+            
+            <Field id="debugLogging" type="checkbox" defaultValue="false">
+                <Label>Enable Debug Logging:</Label>
+            </Field>
+        </ConfigUI>
+        
+        <States>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+            <State id="eventCount">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Event Count</TriggerLabel>
+                <ControlPageLabel>Event Count</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+
+    <Device type="sensor" id="appleEvents">
+        <Name>Apple Events</Name>
+        <UiDisplayStateId>lastUpdate</UiDisplayStateId>
+        <ConfigUI>
+            <Field id="aeIntro" type="label" fontSize="small" fontColor="darkgray">
+                <Label>Adds upcoming Apple events (keynotes, launches) to a calendar in Calendar.app. Events Apple has announced are added as real events with their start time. Rumoured dates are optional and clearly labelled.</Label>
+            </Field>
+
+            <Field id="refreshCalendarList" type="button">
+                <Label>Refresh Available Calendars</Label>
+                <Title>Refresh</Title>
+                <CallbackMethod>refresh_calendar_list</CallbackMethod>
+            </Field>
+
+            <Field id="targetCalendar" type="menu">
+                <Label>Add Events To Calendar:</Label>
+                <List class="self" method="get_calendar_list_for_creation" dynamicReload="true"/>
+            </Field>
+
+            <Field id="eventName" type="textfield" defaultValue="Apple Event">
+                <Label>Event Name:</Label>
+                <Description>Used as the title for rumoured events. Announced events add Apple's tagline, e.g. "Apple Event: Surprise and Shine".</Description>
+            </Field>
+
+            <Field id="separator1" type="separator"/>
+
+            <Field id="includeRumoured" type="checkbox" defaultValue="false">
+                <Label>Include Rumoured Events:</Label>
+                <Description>Also add all-day entries for dates reported by MacRumors that Apple has not confirmed. If Apple then announces the same date, the entry is upgraded in place.</Description>
+            </Field>
+
+            <Field id="rumouredPrefix" type="textfield" defaultValue="[Rumour]" visibleBindingId="includeRumoured" visibleBindingValue="true">
+                <Label>Label Before Name:</Label>
+                <Description>e.g. [Rumour] gives "[Rumour] Apple Event". Leave blank for none.</Description>
+            </Field>
+
+            <Field id="rumouredSuffix" type="textfield" visibleBindingId="includeRumoured" visibleBindingValue="true">
+                <Label>Label After Name:</Label>
+                <Description>e.g. (Rumoured) gives "Apple Event (Rumoured)". Leave blank for none; use both if you like.</Description>
+            </Field>
+
+            <Field id="daysAhead" type="menu" defaultValue="90" visibleBindingId="includeRumoured" visibleBindingValue="true">
+                <Label>Rumour Look-Ahead:</Label>
+                <List>
+                    <Option value="30">30 days</Option>
+                    <Option value="60">60 days</Option>
+                    <Option value="90">90 days (3 months)</Option>
+                    <Option value="120">120 days (4 months)</Option>
+                    <Option value="180">180 days (6 months)</Option>
+                </List>
+            </Field>
+
+            <Field id="separator2" type="separator"/>
+
+            <Field id="refreshInterval" type="menu" defaultValue="3600">
+                <Label>Check For New Events:</Label>
+                <List>
+                    <Option value="0">Disabled (manual only)</Option>
+                    <Option value="1800">Every 30 minutes</Option>
+                    <Option value="3600">Every hour</Option>
+                    <Option value="7200">Every 2 hours</Option>
+                    <Option value="14400">Every 4 hours</Option>
+                </List>
+            </Field>
+
+            <Field id="separator3" type="separator"/>
+
+            <Field id="aeAdvanced" type="label" fontSize="small" fontColor="darkgray">
+                <Label>Advanced: the defaults work for MacRumors. Keyword lists are comma-separated, whole words only.</Label>
+            </Field>
+
+            <Field id="feedUrl" type="textfield" defaultValue="https://feeds.macrumors.com/MacRumors-All">
+                <Label>News Feed URL:</Label>
+                <Description>RSS or Atom feed to scan. The MacRumors feed holds about 40 hours of stories.</Description>
+            </Field>
+
+            <Field id="includeKeywords" type="textfield" defaultValue="event, keynote, launch, unveil, announce, debut, reveal, coming on, arrives, release date, on sale">
+                <Label>Rumour Headline Keywords:</Label>
+                <Description>A rumoured entry needs one of these in the headline.</Description>
+            </Field>
+
+            <Field id="excludeKeywords" type="textfield" defaultValue="beta, deal, deals, sale, discount, % off, giveaway, review, hands-on, how to, tips, comparison, vs, wallpaper">
+                <Label>Ignore Headlines Containing:</Label>
+            </Field>
+
+            <Field id="separator4" type="separator"/>
+
+            <Field id="debugLogging" type="checkbox" defaultValue="false">
+                <Label>Enable Debug Logging:</Label>
+            </Field>
+        </ConfigUI>
+
+        <States>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+            <State id="status">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Status</TriggerLabel>
+                <ControlPageLabel>Status</ControlPageLabel>
+            </State>
+            <State id="lastResult">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Result</TriggerLabel>
+                <ControlPageLabel>Last Result</ControlPageLabel>
+            </State>
+            <State id="upcomingCount">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Upcoming Event Count</TriggerLabel>
+                <ControlPageLabel>Upcoming Event Count</ControlPageLabel>
+            </State>
+            <State id="nextEventName">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Next Event Name</TriggerLabel>
+                <ControlPageLabel>Next Event Name</ControlPageLabel>
+            </State>
+            <State id="nextEventDate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Next Event Date</TriggerLabel>
+                <ControlPageLabel>Next Event Date</ControlPageLabel>
+            </State>
+            <State id="nextEventKind">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Next Event Kind (confirmed/rumoured)</TriggerLabel>
+                <ControlPageLabel>Next Event Kind</ControlPageLabel>
+            </State>
+            <State id="nextEventDaysAway">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Next Event Days Away</TriggerLabel>
+                <ControlPageLabel>Next Event Days Away</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+
+</Devices>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PluginVersion</key>
+    <string>4.2.13</string>
+    <key>ServerApiVersion</key>
+    <string>3.0</string>
+    <key>IwsApiVersion</key>
+    <string>1.0.0</string>
+    <key>CFBundleDisplayName</key>
+    <string>Calendars &amp; Reminders</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.durosity.indigo.calendar</string>
+    <key>CFBundleVersion</key>
+    <string>4.2.13</string>
+    <key>NSCalendarsUsageDescription</key>
+    <string>Indigo needs access to your calendars to display events on Indigo devices and create new events.</string>
+    <key>NSRemindersUsageDescription</key>
+    <string>Indigo needs access to your reminders to display tasks on Indigo devices and create new reminders.</string>
+    <key>NSCalendarsFullAccessUsageDescription</key>
+    <string>Indigo needs full access to your calendars to read events and create new ones for your home automation routines.</string>
+    <key>NSRemindersFullAccessUsageDescription</key>
+    <string>Indigo needs full access to your reminders to read tasks, create new reminders, and mark them complete.</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>https://github.com/Durosity/IndigoCalendar</string>
+        </dict>
+    </array>
+</dict>
+</plist>
