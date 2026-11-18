@@ -90,6 +90,8 @@ Device-level states are `reminderCount` and `lastUpdate`.
 
 This device has the same event states and options as a Calendar device, but reads from an `.ics` URL rather than Calendar.app. It suits public sports fixtures, school term dates, bin collections and similar feeds.
 
+If a feed is slow or unreachable, the fetch is retried once after 5 seconds, and the device keeps its existing events until a fetch succeeds. A single warning is logged when the feed first fails, further failures only appear in the debug log, and one line is logged when it recovers. HTTP 4xx errors, such as a wrong URL, aren't retried.
+
 ### Merged Calendar
 
 This device combines any number of Calendar and ICS devices into a single sorted list, with optional de-duplication. It's useful when one control page needs to show "what's next" across everything.
@@ -225,6 +227,9 @@ tccutil reset AppleEvents
 **Why does the plugin use `osascript` for its permission check?**
 macOS attributes AppleEvents to the process that sends them. When they come from `/usr/bin/osascript`, which Apple ships with the correct usage descriptions, you get proper Calendars and Reminders prompts. Running AppleScript in-process from Indigo's plugin host would push the prompts into the less obvious *Automation* panel instead.
 
+**"ICS feed unavailable" warning.**
+The feed's server didn't respond in time (30 seconds per attempt), refused the connection or returned an HTTP error. This is usually a temporary problem at the other end, and the device keeps showing its previous events in the meantime. You'll see "ICS feed is reachable again" once it recovers. If the warning says HTTP 404 or similar, check the feed URL.
+
 **Recurring events aren't expanding.**
 That only happens on the AppleScript fallback path. Check the log at startup to see which path is in use, and grant Calendars access so EventKit is used.
 
@@ -242,6 +247,10 @@ Turn on **Enable Debug Logging** in the device's settings and check the Indigo e
 ---
 
 ## Changelog
+
+### 4.2.14
+- ICS feeds retry once on a timeout or dropped connection, log a single warning instead of a traceback, and stay quiet until the feed recovers.
+- The ICS request's User-Agent reports the real plugin version.
 
 ### 4.2.13
 - Version bump for Plugin Store packaging. No functional changes.
@@ -270,6 +279,12 @@ Turn on **Enable Debug Logging** in the device's settings and check the Indigo e
 
 ### 2.x
 - Moved to EventKit for calendars and reminders, with recurring event support.
+
+---
+
+## License
+
+MIT. See [LICENSE](LICENSE).
 
 ---
 

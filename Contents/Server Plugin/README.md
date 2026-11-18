@@ -72,6 +72,16 @@ tccutil reset AppleEvents
 (Resetting the system-wide entries rather than per-binary because `osascript`
 itself doesn't have a separate per-app TCC entry under modern macOS.)
 
+## What's New in v4.2.14
+
+- **Quieter, more forgiving ICS feeds.** A feed that times out or drops the connection
+  no longer logs a full Python traceback. The fetch is retried once after 5 seconds; if
+  that also fails, one warning is logged and the device keeps its existing events.
+  Further failures stay out of the log (debug only) until the feed recovers, when a
+  single "reachable again" line is logged. HTTP 4xx errors (e.g. a wrong URL) are not
+  retried.
+- The ICS request's User-Agent now reports the real plugin version.
+
 ## What's New in v4.2.12
 
 - **Complete a reminder automatically from a trigger.** The **Create Reminder** action

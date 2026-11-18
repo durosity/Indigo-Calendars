@@ -10,6 +10,9 @@ import subprocess
 from datetime import datetime, timedelta
 import threading
 import time
+import http.client
+import urllib.error
+import urllib.request
 
 import apple_events
 
@@ -23,6 +26,7 @@ class Plugin(indigo.PluginBase):
         self.calendar_list_cache_time = None
         self.timeout_counts = {}  # Track consecutive timeouts per device
         self.last_timeout_warning = {}  # Track when we last warned about timeouts
+        self.ics_fetch_failing = {}  # device id -> True while an ICS feed is failing (v4.2.14)
         self.trigger_check_thread = None
         self.trigger_check_stop = False
         self.triggered_events = {}  # Track which events we've already triggered
@@ -1849,13 +1853,15 @@ return output
         days_ahead = int(device.pluginProps.get("daysAhead", 60))
         
         try:
-            # Fetch ICS feed
-            self.log_debug(f"Fetching ICS feed from {ics_url}", device)
-            req = urllib.request.Request(ics_url)
-            req.add_header('User-Agent', 'Indigo-Calendar-Plugin/3.4.0')
-            
-            with urllib.request.urlopen(req, timeout=30) as response:
-                ics_data = response.read().decode('utf-8')
+            # Fetch ICS feed. Network problems (timeouts, refused or dropped connections,
+            # HTTP errors) are expected now and then: log one line, keep the existing
+            # events, and don't repeat the warning until the feed recovers.
+            try:
+                ics_data = self._fetch_ics_feed(ics_url, device)
+            except self.ICS_NETWORK_ERRORS as e:
+                self._ics_fetch_failed(device, e)
+                return
+            self._ics_fetch_succeeded(device)
             
             # Parse ICS data
             events = self.parse_ics_data(ics_data, days_ahead, device)
@@ -1941,6 +1947,68 @@ return output
             import traceback
             self.logger.error(traceback.format_exc())
     
+    # ========================================
+    # ICS fetch with retry and quiet failure logging (v4.2.14)
+    # ========================================
+
+    # URLError covers HTTPError and connect-time failures; OSError covers TimeoutError,
+    # ConnectionError and ssl.SSLError; HTTPException covers malformed/dropped responses.
+    ICS_NETWORK_ERRORS = (urllib.error.URLError, http.client.HTTPException, OSError)
+    ICS_TIMEOUT_SECONDS = 30
+    ICS_RETRY_DELAY_SECONDS = 5
+
+    def _fetch_ics_feed(self, ics_url, device):
+        """Download an ICS feed, retrying once on a transient failure.
+
+        Raises one of ICS_NETWORK_ERRORS if both attempts fail. Client errors
+        (HTTP 4xx, e.g. a wrong URL) are not retried.
+        """
+        import urllib.request
+        import urllib.error
+
+        req = urllib.request.Request(ics_url)
+        req.add_header('User-Agent', f'Indigo-Calendar-Plugin/{self.pluginVersion}')
+
+        for attempt in (1, 2):
+            try:
+                self.log_debug(f"Fetching ICS feed from {ics_url} (attempt {attempt})", device)
+                with urllib.request.urlopen(req, timeout=self.ICS_TIMEOUT_SECONDS) as response:
+                    return response.read().decode('utf-8')
+            except self.ICS_NETWORK_ERRORS as e:
+                is_client_error = isinstance(e, urllib.error.HTTPError) and 400 <= e.code < 500
+                if attempt == 2 or is_client_error:
+                    raise
+                self.log_debug(f"ICS fetch failed ({self._describe_ics_error(e)}), "
+                               f"retrying in {self.ICS_RETRY_DELAY_SECONDS}s", device)
+                time.sleep(self.ICS_RETRY_DELAY_SECONDS)
+
+    def _describe_ics_error(self, e):
+        """Short, human-readable description of a fetch error."""
+        import urllib.error
+        if isinstance(e, urllib.error.HTTPError):
+            return f"HTTP {e.code} {e.reason}"
+        if isinstance(e, TimeoutError) or (isinstance(e, urllib.error.URLError)
+                                           and isinstance(e.reason, TimeoutError)):
+            return "timed out"
+        if isinstance(e, urllib.error.URLError):
+            return str(e.reason)
+        return str(e) or type(e).__name__
+
+    def _ics_fetch_failed(self, device, e):
+        """Warn once per outage; later consecutive failures go to the debug log only."""
+        reason = self._describe_ics_error(e)
+        if self.ics_fetch_failing.get(device.id):
+            self.log_debug(f"ICS feed still unavailable ({reason})", device)
+            return
+        self.ics_fetch_failing[device.id] = True
+        self.logger.warning(f"{device.name}: ICS feed unavailable ({reason}) - keeping existing "
+                            f"events. Further failures won't be logged until it recovers.")
+
+    def _ics_fetch_succeeded(self, device):
+        """Log once when a previously failing feed comes back."""
+        if self.ics_fetch_failing.pop(device.id, False):
+            self.logger.info(f"{device.name}: ICS feed is reachable again")
+
     def parse_ics_data(self, ics_data, days_ahead, device):
         """Parse ICS calendar data"""
         from datetime import datetime, timedelta
