@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>PluginVersion</key>
-    <string>4.2.14</string>
+    <string>4.2.15</string>
     <key>ServerApiVersion</key>
     <string>3.0</string>
     <key>IwsApiVersion</key>
@@ -13,7 +13,7 @@
     <key>CFBundleIdentifier</key>
     <string>com.durosity.indigo.calendar</string>
     <key>CFBundleVersion</key>
-    <string>4.2.14</string>
+    <string>4.2.15</string>
     <key>NSCalendarsUsageDescription</key>
     <string>Indigo needs access to your calendars to display events on Indigo devices and create new events.</string>
     <key>NSRemindersUsageDescription</key>

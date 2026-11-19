@@ -90,6 +90,8 @@ Device-level states are `reminderCount` and `lastUpdate`.
 
 This device has the same event states and options as a Calendar device, but reads from an `.ics` URL rather than Calendar.app. It suits public sports fixtures, school term dates, bin collections and similar feeds.
 
+Only events that haven't finished yet and start within the *Days Ahead* window are shown, so feeds that publish years of history, such as GOV.UK's bank holidays (`https://www.gov.uk/bank-holidays/england-and-wales.ics`), list what's coming up. UTC and time-zoned (`TZID`) times are converted to your Mac's local time.
+
 If a feed is slow or unreachable, the fetch is retried once after 5 seconds, and the device keeps its existing events until a fetch succeeds. A single warning is logged when the feed first fails, further failures only appear in the debug log, and one line is logged when it recovers. HTTP 4xx errors, such as a wrong URL, aren't retried.
 
 ### Merged Calendar
@@ -247,6 +249,11 @@ Turn on **Enable Debug Logging** in the device's settings and check the Indigo e
 ---
 
 ## Changelog
+
+### 4.2.15
+- ICS feeds skip events that have already finished, so feeds with years of history show upcoming events.
+- ICS times in UTC or with a `TZID` are converted to local time (UTC times were an hour early during BST).
+- Long ICS titles and locations are no longer truncated, and escaped characters are unescaped.
 
 ### 4.2.14
 - ICS feeds retry once on a timeout or dropped connection, log a single warning instead of a traceback, and stay quiet until the feed recovers.

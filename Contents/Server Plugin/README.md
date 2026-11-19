@@ -72,6 +72,19 @@ tccutil reset AppleEvents
 (Resetting the system-wide entries rather than per-binary because `osascript`
 itself doesn't have a separate per-app TCC entry under modern macOS.)
 
+## What's New in v4.2.15
+
+- **ICS feeds show upcoming events, not the oldest.** Events that have already finished
+  are now skipped, so feeds that publish years of history (such as GOV.UK's bank
+  holidays, which start in 2019) fill the slots with what's coming up. An event stays
+  listed until it ends, so today's all-day events remain in slot 01 all day.
+- **Correct times for UTC and time-zoned events.** `...Z` times are converted from UTC to
+  local time (previously an hour early during BST), and `TZID=` times are converted from
+  their zone.
+- **Long titles and locations are no longer cut off.** Folded ICS lines are rejoined, and
+  escaped characters (`\,` `\;` `\n`) are unescaped.
+- All-day events without an end date now last the whole day rather than one hour.
+
 ## What's New in v4.2.14
 
 - **Quieter, more forgiving ICS feeds.** A feed that times out or drops the connection

@@ -2009,9 +2009,68 @@ return output
         if self.ics_fetch_failing.pop(device.id, False):
             self.logger.info(f"{device.name}: ICS feed is reachable again")
 
+    # ========================================
+    # ICS parsing helpers (v4.2.15)
+    # ========================================
+
+    @staticmethod
+    def _ics_unescape(text):
+        """Undo RFC 5545 text escaping (\\, \\; \\, \\n)."""
+        import re
+        return re.sub(r'\\([\\;,nN])',
+                      lambda m: '\n' if m.group(1) in 'nN' else m.group(1), text).strip()
+
+    @staticmethod
+    def _ics_property(vevent_data, name):
+        """Return (params, value) for the first property called `name`, or (None, None).
+
+        Handles parameters, e.g. DTSTART;TZID=Europe/London:20260101T090000.
+        Expects folded lines to have been unfolded already.
+        """
+        import re
+        match = re.search(rf'^{name}((?:;[^:\r\n]*)?):(.*)$', vevent_data, re.MULTILINE)
+        if not match:
+            return None, None
+        return match.group(1), match.group(2).rstrip('\r')
+
+    @staticmethod
+    def _ics_parse_datetime(params, value):
+        """Parse an ICS DATE or DATE-TIME into a naive datetime in the Mac's local time.
+
+        Returns (datetime, is_all_day). Raises ValueError if it can't be parsed.
+        - DATE (20261225): all day.
+        - UTC (20260715T180000Z): converted to local time.
+        - TZID=Area/City: converted from that zone to local time.
+        - Floating (no Z, no TZID): taken as local time.
+        """
+        import re
+        from datetime import timezone
+        value = value.strip()
+        if 'T' not in value:
+            return datetime.strptime(value[:8], '%Y%m%d'), True
+
+        is_utc = value.endswith('Z')
+        dt = datetime.strptime(value.rstrip('Z')[:15], '%Y%m%dT%H%M%S')
+        if is_utc:
+            return dt.replace(tzinfo=timezone.utc).astimezone().replace(tzinfo=None), False
+
+        tzid_match = re.search(r'TZID=("?)([^;:"]+)\1', params or '')
+        if tzid_match:
+            try:
+                from zoneinfo import ZoneInfo
+                zone = ZoneInfo(tzid_match.group(2).strip())
+                return dt.replace(tzinfo=zone).astimezone().replace(tzinfo=None), False
+            except Exception:
+                pass  # Unknown/Windows-style zone name: treat as local time
+        return dt, False
+
     def parse_ics_data(self, ics_data, days_ahead, device):
-        """Parse ICS calendar data"""
-        from datetime import datetime, timedelta
+        """Parse ICS calendar data into upcoming events.
+
+        Only events that haven't finished yet and start within `days_ahead` days are
+        returned, so feeds that publish years of history (e.g. GOV.UK bank holidays)
+        show what's coming up rather than the oldest entries.
+        """
         import re
         
         try:
@@ -2019,61 +2078,49 @@ return output
             now = datetime.now()
             cutoff_date = now + timedelta(days=days_ahead)
             
-            # Simple ICS parser - split by VEVENT
-            vevent_pattern = r'BEGIN:VEVENT(.*?)END:VEVENT'
-            vevents = re.findall(vevent_pattern, ics_data, re.DOTALL)
+            # Unfold long lines: RFC 5545 continues a line on the next one starting with
+            # a space or tab, so long SUMMARY/LOCATION values would otherwise be cut off.
+            ics_data = re.sub(r'\r?\n[ \t]', '', ics_data)
+            
+            vevents = re.findall(r'BEGIN:VEVENT(.*?)END:VEVENT', ics_data, re.DOTALL)
             
             for vevent_data in vevents:
                 event = {}
                 
-                # Extract SUMMARY (title)
-                summary_match = re.search(r'SUMMARY:(.*?)(?:\r?\n(?! ))', vevent_data)
-                if summary_match:
-                    event['title'] = summary_match.group(1).strip()
-                else:
+                # SUMMARY (title)
+                _, summary = self._ics_property(vevent_data, 'SUMMARY')
+                if not summary or not summary.strip():
                     continue  # Skip events without title
+                event['title'] = self._ics_unescape(summary)
                 
-                # Extract DTSTART
-                dtstart_match = re.search(r'DTSTART(?:;[^:]*)?:(.*?)(?:\r?\n)', vevent_data)
-                if dtstart_match:
-                    dt_str = dtstart_match.group(1).strip()
-                    try:
-                        if 'T' in dt_str:
-                            # Has time
-                            event['start'] = datetime.strptime(dt_str.replace('Z', ''), '%Y%m%dT%H%M%S')
-                            event['all_day'] = False
-                        else:
-                            # All day
-                            event['start'] = datetime.strptime(dt_str, '%Y%m%d')
-                            event['all_day'] = True
-                    except:
-                        continue  # Skip if can't parse date
-                else:
+                # DTSTART
+                params, value = self._ics_property(vevent_data, 'DTSTART')
+                if value is None:
                     continue  # Skip events without start date
+                try:
+                    event['start'], event['all_day'] = self._ics_parse_datetime(params, value)
+                except ValueError:
+                    continue  # Skip if can't parse date
                 
-                # Extract DTEND
-                dtend_match = re.search(r'DTEND(?:;[^:]*)?:(.*?)(?:\r?\n)', vevent_data)
-                if dtend_match:
-                    dt_str = dtend_match.group(1).strip()
+                # DTEND (default: one day for all-day events, one hour otherwise)
+                default_length = timedelta(days=1) if event['all_day'] else timedelta(hours=1)
+                params, value = self._ics_property(vevent_data, 'DTEND')
+                event['end'] = event['start'] + default_length
+                if value is not None:
                     try:
-                        if 'T' in dt_str:
-                            event['end'] = datetime.strptime(dt_str.replace('Z', ''), '%Y%m%dT%H%M%S')
-                        else:
-                            event['end'] = datetime.strptime(dt_str, '%Y%m%d')
-                    except:
-                        event['end'] = event['start'] + timedelta(hours=1)
-                else:
-                    event['end'] = event['start'] + timedelta(hours=1)
+                        event['end'], _ = self._ics_parse_datetime(params, value)
+                    except ValueError:
+                        pass
                 
-                # Extract LOCATION
-                location_match = re.search(r'LOCATION:(.*?)(?:\r?\n(?! ))', vevent_data)
-                event['location'] = location_match.group(1).strip() if location_match else ""
+                # LOCATION
+                _, location = self._ics_property(vevent_data, 'LOCATION')
+                event['location'] = self._ics_unescape(location) if location else ""
                 
-                # Set calendar name
                 event['calendar_name'] = "ICS Feed"
                 
-                # Only include events within date range
-                if event['start'] <= cutoff_date:
+                # Only upcoming or in-progress events within the window. Checking the
+                # end (not the start) keeps today's all-day events listed all day.
+                if event['end'] > now and event['start'] <= cutoff_date:
                     events.append(event)
             
             # Remove duplicates if enabled
